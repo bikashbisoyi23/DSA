@@ -1,0 +1,37 @@
+name: Move LeetCode Solutions
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  move:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Move folders
+        run: |
+          mkdir -p LeetCode
+
+          for item in */ ; do
+            folder="${item%/}"
+
+            if [[ "$folder" != ".github" && "$folder" != "LeetCode" ]]; then
+              mv "$folder" LeetCode/ || true
+            fi
+          done
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add .
+
+          git diff --cached --quiet || git commit -m "Move LeetCode solution"
+
+          git push
