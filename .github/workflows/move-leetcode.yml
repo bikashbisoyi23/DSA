@@ -1,6 +1,5 @@
 name: Move LeetCode Solutions
 
-# Give the workflow explicit write permission so the default GITHUB_TOKEN can push
 permissions:
   contents: write
 
@@ -20,17 +19,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # ensure the GITHUB_TOKEN is persisted so git push uses it
           persist-credentials: true
 
-      - name: Move folders
+      - name: Move only LeetCode problem folders
         run: |
           mkdir -p LeetCode
 
           for item in */ ; do
             folder="${item%/}"
 
-            if [[ "$folder" != ".github" && "$folder" != "LeetCode" ]]; then
+            # Move only folders starting with 4 digits
+            # Example: 0001-Two-Sum
+            if [[ "$folder" =~ ^[0-9]{4}.* ]]; then
               mv "$folder" LeetCode/ || true
             fi
           done
@@ -41,7 +41,8 @@ jobs:
           git config user.email "github-actions@github.com"
 
           git add .
-          # include [skip ci] to avoid retriggering this workflow
-          git diff --cached --quiet || git commit -m "Move LeetCode solution [skip ci]"
 
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "Move LeetCode solution [skip ci]"
+            git push
+          fi
