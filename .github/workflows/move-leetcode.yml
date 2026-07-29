@@ -1,5 +1,9 @@
 name: Move LeetCode Solutions
 
+# Give the workflow explicit write permission so the default GITHUB_TOKEN can push
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -10,8 +14,14 @@ jobs:
   move:
     runs-on: ubuntu-latest
 
+    # Avoid running when the workflow itself pushed the commit
+    if: github.actor != 'github-actions[bot]'
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          # ensure the GITHUB_TOKEN is persisted so git push uses it
+          persist-credentials: true
 
       - name: Move folders
         run: |
@@ -31,7 +41,7 @@ jobs:
           git config user.email "github-actions@github.com"
 
           git add .
-
-          git diff --cached --quiet || git commit -m "Move LeetCode solution"
+          # include [skip ci] to avoid retriggering this workflow
+          git diff --cached --quiet || git commit -m "Move LeetCode solution [skip ci]"
 
           git push
